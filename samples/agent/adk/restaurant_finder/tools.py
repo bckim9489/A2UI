@@ -14,7 +14,7 @@
 
 import json
 import logging
-import os
+from pathlib import Path
 
 from google.adk.tools.tool_context import ToolContext
 
@@ -32,14 +32,17 @@ def get_restaurants(cuisine: str, location: str,  tool_context: ToolContext, cou
     items = []
     if "new york" in location.lower() or "ny" in location.lower():
         try:
-            script_dir = os.path.dirname(__file__)
-            file_path = os.path.join(script_dir, "restaurant_data.json")
-            with open(file_path) as f:
-                restaurant_data_str = f.read()
-                if base_url := tool_context.state.get("base_url"):                    
-                    restaurant_data_str = restaurant_data_str.replace("http://localhost:10002", base_url)
-                    logger.info(f'Updated base URL from tool context: {base_url}')
-                all_items = json.loads(restaurant_data_str)        
+            script_dir = Path(__file__).parent
+            file_path = script_dir / "restaurant_data.json"
+
+            restaurant_data_str = file_path.read_text(encoding="utf-8")
+
+            if base_url := tool_context.state.get("base_url"):
+                restaurant_data_str = restaurant_data_str.replace("http://localhost:10002", base_url)
+                logger.info(f'Updated base URL from tool context: {base_url}')
+
+            all_items = json.loads(restaurant_data_str)
+
 
             # Slice the list to return only the requested number of items
             items = all_items[:count]
